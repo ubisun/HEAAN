@@ -17,7 +17,8 @@
 
 #include "EvaluatorUtils.h"
 #include "BootContext.h"
-
+#include "TimeUtils.h"
+#include "Profile.h"
 
 Ring::Ring() {
 
@@ -323,11 +324,42 @@ long Ring::maxBits(const ZZ* f, long n) {
 }
 
 void Ring::CRT(uint64_t* rx, ZZ* x, const long np) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#ifdef _PROFILE_
+        startProfile(RING_CRT);
+#endif
+
 	multiplier.CRT(rx, x, np);
+
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(RING_CRT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_CRT] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void Ring::addNTTAndEqual(uint64_t* ra, uint64_t* rb, const long np) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#ifdef _PROFILE_
+        startProfile(RING_addNTTAndEqual);
+#endif
+
 	multiplier.addNTTAndEqual(ra, rb, np);
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(RING_addNTTAndEqual));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_addNTTAndEqual] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void Ring::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& q) {
@@ -339,7 +371,23 @@ void Ring::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& q) {
 }
 
 void Ring::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& q) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#ifdef _PROFILE_
+        startProfile(RING_multDNTT);
+#endif
+
 	multiplier.multDNTT(x, ra, rb, np, q);
+
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(RING_multDNTT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_multDNTT] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void Ring::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& q) {
@@ -399,9 +447,25 @@ void Ring::add(ZZ* res, ZZ* p1, ZZ* p2, const ZZ& mod) {
 }
 
 void Ring::addAndEqual(ZZ* p1, ZZ* p2, const ZZ& mod) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_addAndEqual);
+#endif
 	for (long i = 0; i < N; ++i) {
 		AddMod(p1[i], p1[i], p2[i], mod);
 	}
+
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_addAndEqual));
+#endif
+
+#ifdef _TIME_PERFORM_
+        timeResult[RING_addAndEqual] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void Ring::sub(ZZ* res, ZZ* p1, ZZ* p2, const ZZ& mod) {
@@ -411,9 +475,24 @@ void Ring::sub(ZZ* res, ZZ* p1, ZZ* p2, const ZZ& mod) {
 }
 
 void Ring::subAndEqual(ZZ* p1, ZZ* p2, const ZZ& mod) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#ifdef _PROFILE_
+        startProfile(RING_subAndEqual);
+#endif
+
 	for (long i = 0; i < N; ++i) {
 		AddMod(p1[i], p1[i], -p2[i], mod);
 	}
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(RING_subAndEqual));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_subAndEqual] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void Ring::subAndEqual2(ZZ* p1, ZZ* p2, const ZZ& mod) {
@@ -522,9 +601,23 @@ void Ring::rightShift(ZZ* res, ZZ* p, long bits) {
 }
 
 void Ring::rightShiftAndEqual(ZZ* p, long bits) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#ifdef _PROFILE_
+        startProfile(RING_rightShiftAndEqual);
+#endif
 	for (long i = 0; i < N; ++i) {
 		p[i] >>= bits;
-	}
+        }
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(RING_rightShiftAndEqual));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_rightShiftAndEqual] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 
@@ -534,6 +627,14 @@ void Ring::rightShiftAndEqual(ZZ* p, long bits) {
 
 
 void Ring::leftRotate(ZZ* res, ZZ* p, long r) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_leftRotate);
+#endif
+
 	long pow = rotGroup[r];
 	for (long i = 0; i < N; ++i) {
 		long ipow = i * pow;
@@ -544,6 +645,13 @@ void Ring::leftRotate(ZZ* res, ZZ* p, long r) {
 			res[shift - N] = -p[i];
 		}
 	}
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_leftRotate));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_leftRotate] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void Ring::conjugate(ZZ* res, ZZ* p) {

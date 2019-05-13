@@ -18,3 +18,4 @@
 #include "TimeUtils.h"
 #include "SerializationUtils.h"
 #include "TestScheme.h"
+#include "Profile.h"

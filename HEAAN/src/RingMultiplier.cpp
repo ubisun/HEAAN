@@ -14,6 +14,9 @@
 #include <cstdlib>
 #include <iterator>
 
+#include "TimeUtils.h"
+#include "Profile.h"
+
 RingMultiplier::RingMultiplier() {
 
 	uint64_t primetest = (1ULL << pbnd) + 1;
@@ -97,6 +100,14 @@ bool RingMultiplier::primeTest(uint64_t p) {
 }
 
 void RingMultiplier::NTT(uint64_t* a, long index) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_NTT);
+#endif
+
 	long t = N;
 	long logt1 = logN + 1;
 	uint64_t p = pVec[index];
@@ -113,9 +124,23 @@ void RingMultiplier::NTT(uint64_t* a, long index) {
 			}
 		}
 	}
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_NTT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_NTT] += timeutils.stopMid(__func__);
+#endif
 }
 
 void RingMultiplier::INTT(uint64_t* a, long index) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_INTT);
+#endif
+
 	uint64_t p = pVec[index];
 	uint64_t pInv = pInvVec[index];
 	long t = 1;
@@ -137,6 +162,14 @@ void RingMultiplier::INTT(uint64_t* a, long index) {
 	for (long i = 0; i < N; i++) {
 		idivN(a[i], NScale, p, pInv);
 	}
+
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_INTT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_INTT] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 //----------------------------------------------------------------------------------
@@ -144,6 +177,15 @@ void RingMultiplier::INTT(uint64_t* a, long index) {
 //----------------------------------------------------------------------------------
 
 void RingMultiplier::CRT(uint64_t* rx, ZZ* x, const long np) {
+
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_CRT);
+#endif
+
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
 		uint64_t* rxi = rx + (i << logN);
@@ -155,9 +197,25 @@ void RingMultiplier::CRT(uint64_t* rx, ZZ* x, const long np) {
 		NTT(rxi, i);
 	}
 	NTL_EXEC_RANGE_END;
+
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_CRT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_CRT] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void RingMultiplier::addNTTAndEqual(uint64_t* ra, uint64_t* rb, const long np) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_addNTTAndEqual);
+#endif
+
 	for (long i = 0; i < np; ++i) {
 		uint64_t* rai = ra + (i << logN);
 		uint64_t* rbi = rb + (i << logN);
@@ -167,9 +225,25 @@ void RingMultiplier::addNTTAndEqual(uint64_t* ra, uint64_t* rb, const long np) {
 			if(rai[n] > pi) rai[n] -= pi;
 		}
 	}
+
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_addNTTAndEqual));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_addNTTAndEqual] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_reconstruct);
+#endif
+
 	ZZ* pHatnp = pHat[np - 1];
 	uint64_t* pHatInvModpnp = pHatInvModp[np - 1];
 	mulmod_precon_t* coeffpinv_arraynp = coeffpinv_array[np - 1];
@@ -192,6 +266,14 @@ void RingMultiplier::reconstruct(ZZ* x, uint64_t* rx, long np, const ZZ& q) {
 		x[n] %= q;
 	}
 	NTL_EXEC_RANGE_END;
+
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_reconstruct));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_reconstruct] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void RingMultiplier::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& mod) {
@@ -228,6 +310,14 @@ void RingMultiplier::mult(ZZ* x, ZZ* a, ZZ* b, long np, const ZZ& mod) {
 }
 
 void RingMultiplier::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& mod) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_multNTT);
+#endif
+
 	uint64_t* ra = new uint64_t[np << logN]();
 	uint64_t* rx = new uint64_t[np << logN]();
 	NTL_EXEC_RANGE(np, first, last);
@@ -253,10 +343,26 @@ void RingMultiplier::multNTT(ZZ* x, ZZ* a, uint64_t* rb, long np, const ZZ& mod)
 
 	delete[] ra;
 	delete[] rx;
+
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_multNTT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_multNTT] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void RingMultiplier::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const ZZ& mod) {
-	uint64_t* rx = new uint64_t[np << logN]();
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_multDNTT);
+#endif
+
+    uint64_t* rx = new uint64_t[np << logN]();
 
 	NTL_EXEC_RANGE(np, first, last);
 	for (long i = first; i < last; ++i) {
@@ -275,6 +381,13 @@ void RingMultiplier::multDNTT(ZZ* x, uint64_t* ra, uint64_t* rb, long np, const 
 	reconstruct(x, rx, np, mod);
 
 	delete[] rx;
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_multDNTT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_multDNTT] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void RingMultiplier::multAndEqual(ZZ* a, ZZ* b, long np, const ZZ& mod) {
@@ -372,6 +485,14 @@ void RingMultiplier::square(ZZ* x, ZZ* a, long np, const ZZ& mod) {
 }
 
 void RingMultiplier::squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& mod) {
+#ifdef _TIME_PERFORM_
+        TimeUtils timeutils;
+        timeutils.startMid(__func__);
+#endif
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        startProfile(RING_MULT_squareNTT);
+#endif
+
 	uint64_t* rx = new uint64_t[np << logN]();
 
 	NTL_EXEC_RANGE(np, first, last);
@@ -390,6 +511,13 @@ void RingMultiplier::squareNTT(ZZ* x, uint64_t* ra, long np, const ZZ& mod) {
 	reconstruct(x, rx, np, mod);
 
 	delete[] rx;
+#if defined(_PROFILE_) || defined(_BS_PROFILE_)
+        endProfile(NEGATIVE(RING_MULT_squareNTT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[RING_MULT_squareNTT] += timeutils.stopMid(__func__);
+#endif
+
 }
 
 void RingMultiplier::squareAndEqual(ZZ* a, long np, const ZZ& mod) {

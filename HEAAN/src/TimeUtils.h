@@ -18,13 +18,19 @@ class TimeUtils {
 public:
 
 	struct timeval startTime, stopTime;
-	double timeElapsed;
+    struct timeval startMidTime, stopMidTime;
+	double timeElapsed, timeMidElapsed;
 
 	TimeUtils();
 
 	void start(string msg);
 
-	void stop(string msg);
+	double stop(string msg);
+
+    void startMid(string msg);
+
+	double stopMid(string msg);
+
 
 };
 

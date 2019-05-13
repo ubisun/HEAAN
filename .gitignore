@@ -6,3 +6,7 @@ HEAAN/Release
 HEAAN/run/HEAAN
 
 HEAAN/lib/*.a
+
+*.d
+*.o
+HEAAN/run/TestHEAAN

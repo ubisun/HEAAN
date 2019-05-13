@@ -12,6 +12,7 @@
 
 #include "Ciphertext.h"
 #include "EvaluatorUtils.h"
+#include "Profile.h"
 #include "Ring.h"
 #include "Scheme.h"
 #include "SchemeAlgo.h"
@@ -24,9 +25,328 @@ using namespace std;
 using namespace NTL;
 
 
+#define MAX_REPEAT 10000
+#define MAX_REPEAT_BT 30
+double timeResult[MAX_PROFILE_FUNC] = {0};
+int dummy;
+int dummy1;
+
 //----------------------------------------------------------------------------------
 //   STANDARD TESTS
 //----------------------------------------------------------------------------------
+
+int startProfile(int ctl) __attribute__((noinline));
+int endProfile(int ctl) __attribute__((noinline));
+complex<double> normalAdd(complex<double> a, complex<double> b) __attribute__((noinline));
+complex<double> normalMult(complex<double> a, complex<double> b) __attribute__((noinline));
+
+// int startProfile(int ctl) { cout << "startProfile! in TestProgram : " << ctl << endl; }
+
+// int endProfile(int ctl) { cout << "endProfile! in TestProgram : " << ctl << endl; }
+
+// int startProfile(int ctl) { dummy = ctl + 2; }
+
+// int endProfile(int ctl) { dummy = ctl + 3; }
+
+int startProfile(int ctl) { dummy1 = dummy + ctl + 2; }
+
+int endProfile(int ctl) { dummy = dummy1 + ctl + 3; }
+
+complex<double> normalAdd(complex<double> a, complex<double> b) { return a + b; }
+
+complex<double> normalMult(complex<double> a, complex<double> b) { return a * b; }
+
+void initTimeResult() {
+    for (int i = 0; i < MAX_PROFILE_FUNC; i++)
+        timeResult[i] = 0;
+}
+void printTimeResult() {
+    for (int i = 0; i < MAX_PROFILE_FUNC; i++) {
+        if (timeResult[i] == 0)
+            continue;
+
+        if (i == NORMAL_ADD) cout << "NORMAL_ADD : " ;
+        if (i == HE_ADD) cout << "HE_ADD : ";
+        if (i == RING_addAndEqual) cout << "RING_addAndEqual : " ;
+        if (i == NORMAL_MULT) cout << "NORMAL_MULT : ";
+        if (i == HE_MULT) cout << "HE_MULT : ";
+        if (i == RING_CRT) cout << "RING_CRT : ";
+        if (i == RING_multDNTT) cout << "RING_multDNTT : ";
+        if (i == RING_addNTTAndEqual) cout << "RING_addNTTAndEqual : ";
+        if (i == RING_rightShiftAndEqual) cout << "RING_rightShiftAndEqual : ";
+        if (i == RING_subAndEqual) cout << "RING_subAndEqual : ";
+        if (i == RING_leftRotate) cout << "RING_leftRotate : ";
+        if (i == RING_MULT_CRT) cout << "RING_MULT_CRT : ";
+        if (i == RING_MULT_NTT) cout << "RING_MULT_NTT : ";
+        if (i == RING_MULT_multDNTT) cout << "RING_MULT_multDNTT : ";
+        if (i == RING_MULT_INTT) cout << "RING_MULT_INTT : ";
+        if (i == RING_MULT_reconstruct) cout << "RING_MULT_reconstruct : ";
+        if (i == RING_MULT_addNTTAndEqual) cout << "RING_MULT_addNTTAndEqual : ";
+        if (i == RING_MULT_multNTT) cout << "RING_MULT_multNTT : ";
+        if (i == RING_MULT_squareNTT) cout << "RING_MULT_squareNTT : ";
+        if (i == BOOT_STRAP) cout << "BOOT_STRAP : ";
+        if (i == BOOT_STRAP_SUB_SUM) cout << "BOOT_STRAP_SUB_SUM : ";
+        if (i == BOOT_STRAP_CoeffToSlot) cout << "BOOT_STRAP_CoeffToSlot : ";
+        if (i == BOOT_STRAP_EvalExp) cout << "BOOT_STRAP_EvalExp : ";
+        if (i == BOOT_STRAP_SlotToCoeff) cout << "BOOT_STRAP_SlotToCoeff : ";
+
+        cout << timeResult[i] << endl;
+    }
+}
+
+void printFeature() {
+#ifdef _BS_PROFILE_
+    cout << "_BS_PROFILE_ Feature Yes!" << endl;
+#else
+    cout << "_BS_PROFILE_ Feature No!" << endl;
+#endif
+#ifdef _PROFILE_
+    cout << "_PROFILE_ Feature Yes!" << endl;
+#else
+    cout << "_PROFILE_ Feature No!" << endl;
+#endif
+#ifdef _BS_TIME_PERFORM_
+    cout << "_BS_TIME_PERFORM_ Feature Yes!" << endl;
+#else
+    cout << "_BS_TIME_PERFORM_ Feature No!" << endl;
+#endif
+#ifdef _TIME_PERFORM_
+    cout << "_TIME_PERFORM_ Feature Yes!" << endl;
+#else
+    cout << "_TIME_PERFORM_ Feature No!" << endl;
+#endif
+
+
+}
+
+void TestScheme::testProfileIns(long logq, long logp, long logn, char *cmd) {
+    cout << "!!! START TEST Profile Ins !!!(1)" << endl;
+    printFeature();
+
+    srand(time(NULL));
+    SetNumThreads(1);
+    TimeUtils timeutils;
+    long n = (1 << logn);
+    complex<double> *base = EvaluatorUtils::randomComplexArray(n);
+    complex<double> *operand = EvaluatorUtils::randomComplexArray(n);
+    Ciphertext obase, cbase, coperand;
+
+    if (!strcmp(cmd, "NORMAL_ADD")) {
+#ifdef _TIME_PERFORM_
+        initTimeResult();
+        timeutils.start(__func__);
+#endif
+#ifdef _PROFILE_
+        startProfile(NORMAL_ADD);
+#endif
+        for (long i = 0; i < n; i++) {
+            normalAdd(base[i], operand[i]);
+        }
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(NORMAL_ADD));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[NORMAL_ADD] += timeutils.stop(__func__);
+#endif
+    }
+
+    if (!strcmp(cmd, "NORMAL_MULT")) {
+#ifdef _TIME_PERFORM_
+        initTimeResult();
+        timeutils.start(__func__);
+#endif
+#ifdef _PROFILE_
+       startProfile(NORMAL_MULT);
+#endif
+        for (long i = 0; i < n; i++) {
+            normalMult(base[i], operand[i]);
+        }
+
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(NORMAL_MULT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[NORMAL_MULT] += timeutils.stop(__func__);
+#endif
+    }
+
+    if (!strcmp(cmd, "HE_ADD")) {
+        Ring ring;
+        SecretKey secretKey(ring);
+        Scheme scheme(secretKey, ring);
+
+        scheme.encrypt(obase, base, n, logp, logq);
+        scheme.encrypt(cbase, base, n, logp, logq);
+        scheme.encrypt(coperand, operand, n, logp, logq);
+
+        cout << "!!! PREPARED Profile Ins !!!" << endl;
+#ifdef _TIME_PERFORM_
+        initTimeResult();
+        timeutils.start(__func__);
+#endif
+
+#ifdef _PROFILE_
+        startProfile(HE_ADD);
+#endif
+        scheme.addAndEqual(cbase, coperand);
+
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(HE_ADD));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[HE_ADD] += timeutils.stop(__func__);
+#endif
+
+    }
+
+    if (!strcmp(cmd, "HE_MULT")) {
+        Ring ring;
+        SecretKey secretKey(ring);
+        Scheme scheme(secretKey, ring);
+
+        scheme.encrypt(obase, base, n, logp, logq);
+        scheme.encrypt(cbase, base, n, logp, logq);
+        scheme.encrypt(coperand, operand, n, logp, logq);
+
+        cout << "!!! PREPARED Profile Ins !!!" << endl;
+
+#ifdef _TIME_PERFORM_
+        initTimeResult();
+        timeutils.start(__func__);
+#endif
+#ifdef _PROFILE_
+        startProfile(HE_MULT);
+#endif
+        scheme.multAndEqual(obase, coperand);
+
+#ifdef _PROFILE_
+        endProfile(NEGATIVE(HE_MULT));
+#endif
+#ifdef _TIME_PERFORM_
+        timeResult[HE_MULT] += timeutils.stop(__func__);
+#endif
+
+    }
+
+    cout << "!!! END TEST Profile Ins !!!" << endl << endl;
+
+#ifdef _TIME_PERFORM_
+    printTimeResult();
+#endif
+}
+
+void TestScheme::testProfileTime(long logq, long logp, long logn, int repeat) {
+    cout << "!!! START TEST Profile !!!(1)" << endl;
+    printFeature();
+
+    srand(time(NULL));
+    SetNumThreads(1);
+
+    if (repeat > MAX_REPEAT) {
+        cout << "repeat count is too large" << endl;
+        return;
+    } else {
+        cout << "repeat : " << repeat << endl;
+    }
+
+    TimeUtils timeutils;
+    Ring ring;
+    SecretKey secretKey(ring);
+    Scheme scheme(secretKey, ring);
+
+    long n = (1 << logn);
+    complex<double> addR[n];
+    complex<double> multR[n];
+    complex<double> *base = EvaluatorUtils::randomComplexArray(n);
+    complex<double> *operand = EvaluatorUtils::randomComplexArray(n);
+    Ciphertext obase, cbase, coperand;
+
+    for (int i = 0; i < n; i++) {
+        addR[i] = base[i];
+        multR[i] = base[i];
+    }
+
+    // base.real(1.0);
+    // base.imag(0.0);
+    // operand.real(2.0);
+    // operand.imag(0.0);
+
+    scheme.encrypt(obase, base, n, logp, logq);
+    scheme.encrypt(cbase, base, n, logp, logq);
+    scheme.encrypt(coperand, operand, n, logp, logq);
+
+    timeutils.start("Normal Add");
+    for (int i = 0; i < MAX_REPEAT; i++) {
+        for (int j = 0; j < n; j++) {
+            addR[j] += operand[j];
+        }
+    }
+    timeutils.stop("Normal Add");
+
+    timeutils.start("HE Add");
+    scheme.addAndEqual(cbase, coperand);
+    for (int i = 0; i < MAX_REPEAT; i++) {
+        scheme.addAndEqual(cbase, coperand);
+    }
+    timeutils.stop("HE Add");
+
+    complex<double>* dmult = scheme.decrypt(secretKey, cbase);
+    StringUtils::compare(addR, dmult, n, "mult");
+
+    timeutils.start("Normal Mult");
+    for (int i = 0; i < repeat; i++) {
+        for (int j = 0; j < n; j++) {
+            multR[j] *= operand[j];
+        }
+    }
+    timeutils.stop("Normal Mult");
+
+    timeutils.start("HE Mult");
+    for (int i = 0; i < repeat; i++) {
+        scheme.multAndEqual(obase, coperand);
+    }
+    timeutils.stop("HE Mult");
+
+    complex<double> *dmult2 = scheme.decrypt(secretKey, obase);
+    StringUtils::compare(multR, dmult2, n, "mult");
+
+    cout << "!!! END TEST Profile !!!" << endl;
+}
+
+void TestScheme::testTrace(long logq, long logp, long logn) {
+    cout << "!!! START TEST TRACE !!!" << endl;
+    srand(time(NULL));
+    SetNumThreads(8);
+    TimeUtils timeutils;
+    Ring ring;
+    SecretKey secretKey(ring);
+    Scheme scheme(secretKey, ring);
+
+    long n = (1 << logn);
+    complex<double> *mvec1 = EvaluatorUtils::randomComplexArray(n);
+    complex<double> *mvec2 = EvaluatorUtils::randomComplexArray(n);
+
+#ifdef _TRACE_
+    // Set mvec with simple value
+    mvec1[0].real(1.0);
+    mvec1[0].imag(0);
+    mvec1[1].real(2.0);
+    mvec1[1].imag(0);
+    mvec2[0].real(3.0);
+    mvec2[0].imag(0);
+    mvec2[1].real(4.0);
+    mvec2[1].imag(0);
+#endif
+
+    Ciphertext cipher1, cipher2;
+    scheme.encrypt(cipher1, mvec1, n, logp, logq);
+    //scheme.encrypt(cipher2, mvec2, n, logp, logq);
+
+    complex<double> *dvec = scheme.decrypt(secretKey, cipher1);
+
+    StringUtils::compare(mvec1, dvec, n, "trace");
+    cout << "!!! END TEST TRACE !!!" << endl;
+}
 
 
 void TestScheme::testEncrypt(long logq, long logp, long logn) {
@@ -576,6 +896,143 @@ void TestScheme::testBootstrap(long logq, long logp, long logSlots, long logT) {
 	StringUtils::compare(mvec, dvec, slots, "boot");
 
 	cout << "!!! END TEST BOOTSRTAP !!!" << endl;
+}
+
+void TestScheme::testBootstrapProfile(long logq, long logp, long logSlots, long logT) {
+    cout << "!!! START TEST BOOTSTRAP Profile(1) !!!" << endl;
+    printFeature();
+
+    srand(time(NULL));
+    SetNumThreads(1);
+    TimeUtils timeutils;
+    Ring ring;
+    SecretKey secretKey(ring);
+    Scheme scheme(secretKey, ring);
+
+    timeutils.start("Key generating");
+    scheme.addBootKey(secretKey, logSlots, logq + 4);
+    timeutils.stop("Key generated");
+
+    long slots = (1 << logSlots);
+    complex<double> *mvec = EvaluatorUtils::randomComplexArray(slots);
+
+    Ciphertext cipher;
+    scheme.encrypt(cipher, mvec, slots, logp, logq);
+
+    cout << "cipher logq before: " << cipher.logq << endl;
+
+#ifdef _BS_TIME_PERFORM_
+    initTimeResult();
+    timeutils.start(__func__);
+#endif
+
+#ifdef _BS_PROFILE_
+    cout << "Start BS profile" << endl;
+    startProfile(BOOT_STRAP);
+#endif
+    scheme.modDownToAndEqual(cipher, logq);
+    scheme.normalizeAndEqual(cipher);
+    cipher.logq = logQ;
+    cipher.logp = logq + 4;
+
+    Ciphertext rot;
+
+#ifdef _BS_TIME_PERFORM_
+        timeutils.startMid(__func__);
+#endif
+
+#ifdef _BS_PROFILE_
+        startProfile(BOOT_STRAP_SUB_SUM);
+#endif
+
+    for (long i = logSlots; i < logNh; ++i) {
+        scheme.leftRotateFast(rot, cipher, (1 << i));
+        scheme.addAndEqual(cipher, rot);
+    }
+    scheme.divByPo2AndEqual(cipher, logNh);
+
+#ifdef _BS_PROFILE_
+        endProfile(NEGATIVE(BOOT_STRAP_SUB_SUM));
+#endif
+#ifdef _BS_TIME_PERFORM_
+        timeResult[BOOT_STRAP_SUB_SUM] += timeutils.stopMid(__func__);
+#endif
+
+#ifdef _BS_TIME_PERFORM_
+        timeutils.startMid(__func__);
+#endif
+
+#ifdef _BS_PROFILE_
+        startProfile(BOOT_STRAP_CoeffToSlot);
+#endif
+
+        scheme.coeffToSlotAndEqual(cipher);
+
+#ifdef _BS_PROFILE_
+        endProfile(NEGATIVE(BOOT_STRAP_CoeffToSlot));
+#endif
+#ifdef _BS_TIME_PERFORM_
+        timeResult[BOOT_STRAP_CoeffToSlot] += timeutils.stopMid(__func__);
+#endif
+
+
+
+#ifdef _BS_TIME_PERFORM_
+        timeutils.startMid(__func__);
+#endif
+
+#ifdef _BS_PROFILE_
+        startProfile(BOOT_STRAP_EvalExp);
+#endif
+
+    scheme.evalExpAndEqual(cipher, logT);
+
+#ifdef _BS_PROFILE_
+        endProfile(NEGATIVE(BOOT_STRAP_EvalExp));
+#endif
+#ifdef _BS_TIME_PERFORM_
+        timeResult[BOOT_STRAP_EvalExp] += timeutils.stopMid(__func__);
+#endif
+
+#ifdef _BS_TIME_PERFORM_
+        timeutils.startMid(__func__);
+#endif
+
+#ifdef _BS_PROFILE_
+        startProfile(BOOT_STRAP_SlotToCoeff);
+#endif
+
+    scheme.slotToCoeffAndEqual(cipher);
+
+#ifdef _BS_PROFILE_
+        endProfile(NEGATIVE(BOOT_STRAP_SlotToCoeff));
+#endif
+#ifdef _BS_TIME_PERFORM_
+        timeResult[BOOT_STRAP_SlotToCoeff] += timeutils.stopMid(__func__);
+#endif
+
+
+    cipher.logp = logp;
+
+#ifdef _BS_PROFILE_
+    endProfile(NEGATIVE(BOOT_STRAP));
+#endif
+#ifdef _BS_TIME_PERFORM_
+    timeResult[BOOT_STRAP] += timeutils.stop(__func__);
+#endif
+
+#ifdef _BS_TIME_PERFORM_
+    printTimeResult();
+#endif
+
+
+    cout << "cipher logq after: " << cipher.logq << endl;
+
+    complex<double> *dvec = scheme.decrypt(secretKey, cipher);
+
+    StringUtils::compare(mvec, dvec, slots, "boot");
+
+    cout << "!!! END TEST BOOTSRTAP Profile !!!" << endl;
 }
 
 void TestScheme::testBootstrapSingleReal(long logq, long logp, long logT) {

@@ -14,6 +14,7 @@ using namespace std;
 
 TimeUtils::TimeUtils() {
 	timeElapsed = 0;
+	timeMidElapsed = 0;
 }
 
 void TimeUtils::start(string msg) {
@@ -22,11 +23,24 @@ void TimeUtils::start(string msg) {
 	gettimeofday(&startTime, 0);
 }
 
-void TimeUtils::stop(string msg) {
+double TimeUtils::stop(string msg) {
 	gettimeofday(&stopTime, 0);
 	timeElapsed = (stopTime.tv_sec - startTime.tv_sec) * 1000.0;
 	timeElapsed += (stopTime.tv_usec - startTime.tv_usec) / 1000.0;
 	cout << msg +  " time = "<< timeElapsed << " ms" << endl;
 	cout << "------------------" << endl;
+	return timeElapsed;
 }
+
+void TimeUtils::startMid(string msg) {
+	gettimeofday(&startMidTime, 0);
+}
+
+double TimeUtils::stopMid(string msg) {
+	gettimeofday(&stopMidTime, 0);
+	timeMidElapsed = (stopMidTime.tv_sec - startMidTime.tv_sec) * 1000.0;
+	timeMidElapsed += (stopMidTime.tv_usec - startMidTime.tv_usec) / 1000.0;
+	return timeMidElapsed;
+}
+
 

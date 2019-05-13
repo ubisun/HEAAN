@@ -15,9 +15,16 @@ public:
 	//----------------------------------------------------------------------------------
 	//   STANDARD TESTS
 	//----------------------------------------------------------------------------------
-	
 
-	static void testEncrypt(long logq, long logp, long logn);
+	static void checkTest(int cmd);
+
+	static void testTrace(long logq, long logp, long logn);
+
+	static void testProfileIns(long logq, long logp, long logn, char* cmd);
+
+        static void testProfileTime(long logq, long logp, long logn, int repeat);
+
+        static void testEncrypt(long logq, long logp, long logn);
 	
 	static void testEncryptSingle(long logq, long logp);
 	
@@ -70,6 +77,8 @@ public:
 	//   BOOTSTRAPPING TESTS
 	//----------------------------------------------------------------------------------
     
+
+	static void testBootstrapProfile(long logq, long logp, long logn, long logT);
 
 	static void testBootstrap(long logq, long logp, long logn, long logT);
 
