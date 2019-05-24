@@ -35,6 +35,7 @@ void printArray(string name, uint64_t* buf, int size) {
 void basic_test() {
     ToyRingMultiplier trm;
     uint64_t X[SIZE] = {4, 1, 4, 12, 1, 13, 8, 9};
+    //uint64_t X[SIZE] = {4, 1, 4, 7};
 
     cout << endl << endl;
     printArray("X", X, SIZE);
@@ -42,5 +43,6 @@ void basic_test() {
     printArray("NTT(X)", X, SIZE);
     trm.INTT(X, 0);
     printArray("INTT(X)", X, SIZE);
+
 }
 

@@ -111,7 +111,10 @@ void ToyRingMultiplier::NTT(uint64_t *a, long index) {
     long logt1 = logN + 1;
     uint64_t p = pVec[index];
     uint64_t pInv = pInvVec[index];
+    uint64_t t1, t2, U, V;
 
+    cout << endl << "===== NTT =====" << endl;
+    cout << "p=" << p << ", pInv=" << pInv << ", index=" << index <<endl;
     for (long m = 1; m < N; m <<= 1) {
         t >>= 1;
         logt1 -= 1;
@@ -119,9 +122,27 @@ void ToyRingMultiplier::NTT(uint64_t *a, long index) {
             long j1 = i << logt1;
             long j2 = j1 + t - 1;
             uint64_t W = scaledRootPows[index][m + i];
+            cout << "<m=" << m << ", i=" << i << ", scaledRootPows[index][m + i]=W="
+                 << W << ">" << endl;
             for (long j = j1; j <= j2; j++) {
+                t1 = a[j];
+                t2 = a[j+t];
+                U = t1;
+                V = t2 * W;
+                cout << "\ta[" << setw(2) << j << "]=" << setw(3) << a[j];
+                cout << "   a[" << setw(2) << j+t << "]=" << setw(3) << a[j+t];
                 butt(a[j], a[j + t], W, p, pInv);
+                cout << "  =>  a[" << setw(2) << j << "]=" << setw(3) << a[j];
+                cout << "   a[" << setw(2) << j+t << "]=" << setw(3) << a[j+t];
+                // cout << "     [U=" << setw(3) << t1 << ", V=" << setw(3) << t2 << " * ";
+                // cout << setw(3) << W << "=" << setw(5) << V;
+                // cout << ", U+V(mod q)="<< setw(3) << U << " + " << setw(5) << V;
+                // cout << "(mod " << setw(3) << p << ")=" << setw(3) << (U+V)%p;
+                // cout << ", U-V(mod q)="<< setw(3) << U << " - " << setw(5) << V;
+                // cout << "(mod " << setw(3) << p << ")=" << setw(3) << (U-V)%p << "]";
+                cout << endl;
             }
+            cout << endl;
         }
     }
 }
@@ -130,24 +151,39 @@ void ToyRingMultiplier::INTT(uint64_t *a, long index) {
     uint64_t p = pVec[index];
     uint64_t pInv = pInvVec[index];
     long t = 1;
+
+    cout << endl << "===== INTT =====" << endl;
+    cout << "p=" << p << ", pInv=" << pInv << ", index=" << index <<endl;
     for (long m = N; m > 1; m >>= 1) {
         long j1 = 0;
         long h = m >> 1;
         for (long i = 0; i < h; i++) {
             long j2 = j1 + t - 1;
             uint64_t W = scaledRootInvPows[index][h + i];
+            cout << "<m=" << m << ", i=" << i << ", scaledRootInvPows[index][h + i]=W="
+            << W << ">" << endl;
+
             for (long j = j1; j <= j2; j++) {
+                cout << "\ta[" << setw(2) << j << "]=" << setw(3) << a[j];
+                cout << "   a[" << setw(2) << j+t << "]=" << setw(3) << a[j+t];
                 ibutt(a[j], a[j + t], W, p, pInv);
+                cout << "  =>  a[" << setw(2) << j << "]=" << setw(3) << a[j];
+                cout << "   a[" << setw(2) << j+t << "]=" << setw(3) << a[j+t];
+                cout << endl;
             }
+            cout << endl;
             j1 += (t << 1);
         }
         t <<= 1;
     }
 
     uint64_t NScale = scaledNInv[index];
+    cout << "INTT Result(idivN by " << NScale << ") : ";
     for (long i = 0; i < N; i++) {
         idivN(a[i], NScale, p, pInv);
+        cout << a[i] << " ";
     }
+    cout << endl << endl;
 }
 
 void ToyRingMultiplier::mulMod(uint64_t &r, uint64_t a, uint64_t b, uint64_t m) {
@@ -164,6 +200,8 @@ void ToyRingMultiplier::butt(uint64_t &a, uint64_t &b, uint64_t W, uint64_t p, u
     unsigned __int128 Hx = static_cast<unsigned __int128>(Q) * p;
     uint64_t H = Hx >> 64;
     uint64_t V = U1 < H ? U1 + p - H : U1 - H;
+    // cout << endl << "\tU0=" << U0 << ", U1=" << U1;
+    // cout << ", Q=" << Q << ", H=" << H << ", V=" << V << endl;
     b = a < V ? a + p - V : a - V;
     a += V;
     if (a > p)
